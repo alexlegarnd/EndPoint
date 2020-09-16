@@ -1,4 +1,21 @@
 # EndPoint: API Tester
-This project replace the ugly [cURLing](https://github.com/alexlegarnd/cURLing)
 
-It require Gluon JavaFX 14 and Java 14
+This is a tool like Postman but simplest.
+Just send a GET, POST, PUT or DELETE HTTP request on a server and get it's response.
+
+# Build
+
+You need JavaFX 14, you can download it [here](https://gluonhq.com/products/javafx/)
+
+I use the language level 14 of Java, if you want to use Java 11, you need to refactor some Switches/Cases
+
+Tested (and compiled) on Windows 10 and IntelliJ
+
+# Known issues
+
+* Issue with HTTPS on IIS (SSL Handshake failed)
+
+# Binaries
+
+Compiled binaries with installer downloadable [here](https://alexisdelhaie.ovh/dlcenter/endpoint-installer.exe). (There is no fancy web page now)
+This installer are based on [chronos-installer-bootstrap](https://github.com/alexlegarnd/chronos-installer-bootstrap) and [chronos-installer](https://github.com/alexlegarnd/chronos-installer)
