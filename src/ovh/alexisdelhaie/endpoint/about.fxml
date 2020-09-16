@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="365.0" prefWidth="707.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <Label layoutX="25.0" layoutY="183.0" text="Made with Java 14.0.2 (GUI with JavaFX 15)">
+         <font>
+            <Font size="13.0" />
+         </font></Label>
+      <Label layoutX="25.0" layoutY="147.0" text="Author: Alexis Delhaie (@alexlegarnd)">
+         <font>
+            <Font size="13.0" />
+         </font></Label>
+      <ImageView fitHeight="111.0" fitWidth="707.0" pickOnBounds="true" preserveRatio="true" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <image>
+            <Image url="@banner.png" />
+         </image></ImageView>
+      <Label layoutX="25.0" layoutY="220.0" text="Installer made with Delphi 10.3 Community">
+         <font>
+            <Font size="13.0" />
+         </font>
+      </Label>
+      <Label layoutX="25.0" layoutY="257.0" text="Installer Bootstrap made with Python 3">
+         <font>
+            <Font size="13.0" />
+         </font>
+      </Label>
+      <Label layoutX="422.0" layoutY="158.0" text="EndPoint">
+         <font>
+            <Font size="48.0" />
+         </font>
+      </Label>
+      <Label layoutX="444.0" layoutY="230.0" text="Version 0.1 (Not finished)">
+         <font>
+            <Font size="13.0" />
+         </font>
+      </Label>
+   </children>
+</AnchorPane>
