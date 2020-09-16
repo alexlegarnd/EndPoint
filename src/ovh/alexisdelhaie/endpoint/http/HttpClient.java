@@ -19,7 +19,7 @@ public class HttpClient {
     public final static String CRLF = "\r\n";
     public final static int DEFAULT_TIMEOUT = 10000;
 
-    private boolean allowInvalidSsl;
+    private final boolean allowInvalidSsl;
 
     public HttpClient() { this(false); }
     public HttpClient(boolean allowInvalidSsl) { this.allowInvalidSsl = allowInvalidSsl; }

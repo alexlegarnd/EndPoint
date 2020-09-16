@@ -110,7 +110,12 @@ public class Controller implements Initializable {
         sp.getItems().add(ta);
         sp.setOrientation(Orientation.VERTICAL);
 
-        return new Tab("untitled", sp);
+        Tab tab = new Tab("untitled", sp);
+        tab.setOnCloseRequest(arg0 -> {
+            requests.remove(tab.hashCode());
+        });
+
+        return tab;
     }
 
     @SuppressWarnings("unchecked")

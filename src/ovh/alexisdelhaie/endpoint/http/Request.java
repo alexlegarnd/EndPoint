@@ -7,13 +7,13 @@ import java.util.Objects;
 
 public class Request {
 
-    private String host;
-    private String scheme;
-    private String path;
-    private int port;
-    private HashMap<String, String> params;
-    private HashMap<String, String> customHeaders;
-    private String body;
+    private final String host;
+    private final String scheme;
+    private final String path;
+    private final int port;
+    private final HashMap<String, String> params;
+    private final HashMap<String, String> customHeaders;
+    private final String body;
     private String rawRequest;
 
     Request(String host, String scheme, String path, int port,

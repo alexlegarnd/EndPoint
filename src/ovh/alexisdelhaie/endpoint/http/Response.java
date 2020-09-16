@@ -12,21 +12,20 @@ public class Response {
     public final static String CRLF = "\r\n";
     public final static String DOUBLE_CRLF = "\r\n\r\n";
 
-    private HashMap<String, String> headers;
-    private String rawHeaders;
+    private final HashMap<String, String> headers;
+    private final String rawHeaders;
     private String rawResponse;
-    private String body;
+    private final String body;
     private int statusCode;
     private String status;
-    private long time;
-    private Request request;
+    private final long time;
+    private final Request request;
 
     Response(byte[] res, long time, Request r) throws UnsupportedEncodingException {
         headers = new HashMap<>();
         rawResponse = new String(res, StandardCharsets.UTF_8);
         int crlf = rawResponse.indexOf(DOUBLE_CRLF);
-        String h = rawResponse.substring(0, crlf);
-        rawHeaders = h;
+        rawHeaders = rawResponse.substring(0, crlf);
         parseHeaders();
         rawResponse = new String(res, getEncoding());
         body = rawResponse.substring(crlf + DOUBLE_CRLF.length());
@@ -46,11 +45,22 @@ public class Response {
     }
 
     private void parseStatus(String l) {
-        Pattern p = Pattern.compile("(HTTP/1.1)\\s([0-9]{3})\\s(.+)");
+        Pattern p = Pattern.compile("^(HTTP/1.1)\\s([0-9]{3})\\s(.+)$");
         Matcher m = p.matcher(l);
         if (m.matches()) {
             statusCode = Integer.parseInt(m.group(2));
             status = m.group(3);
+        } else {
+            p = Pattern.compile("^(HTTP/1.1)\\s([0-9]{3})$");
+            m = p.matcher(l);
+            if (m.matches()) {
+                statusCode = Integer.parseInt(m.group(2));
+                HttpStatus httpStatus = HttpStatus.findByCode(statusCode);
+                status = (httpStatus != null)  ? httpStatus.getMessage() : "";
+            } else {
+                statusCode = -1;
+                status = "Cannot get status form HTTP Response";
+            }
         }
     }
 

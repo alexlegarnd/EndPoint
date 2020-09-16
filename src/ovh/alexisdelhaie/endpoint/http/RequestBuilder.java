@@ -16,8 +16,8 @@ public class RequestBuilder {
     private String scheme;
     private String path;
     private int port;
-    private HashMap<String, String> params;
-    private HashMap<String, String> customHeaders;
+    private final HashMap<String, String> params;
+    private final HashMap<String, String> customHeaders;
     private String body;
 
     public RequestBuilder (String url) throws MalformedURLException {
