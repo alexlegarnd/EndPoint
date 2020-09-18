@@ -20,9 +20,15 @@ public class HttpClient {
     public final static int DEFAULT_TIMEOUT = 10000;
 
     private final boolean allowInvalidSsl;
+    private final boolean allowDowngrade;
+    private boolean downgraded;
 
-    public HttpClient() { this(false); }
-    public HttpClient(boolean allowInvalidSsl) { this.allowInvalidSsl = allowInvalidSsl; }
+    public HttpClient() { this(false, true); }
+    public HttpClient(boolean allowInvalidSsl, boolean allowDowngrade) {
+        this.allowInvalidSsl = allowInvalidSsl;
+        this.allowDowngrade = allowDowngrade;
+        this.downgraded = false;
+    }
 
     public Optional<Response> get(Request r) throws IOException, KeyManagementException, NoSuchAlgorithmException  {
         return process("GET", r, "");
@@ -51,10 +57,13 @@ public class HttpClient {
     }
 
     private Optional<Response> process(String method, Request r, String body) throws IOException, NoSuchAlgorithmException, KeyManagementException {
-        String headers = buildHeaders(method, r);
         Socket s = (r.getScheme().equals("https")) ?
                 buildSSLSocket(resolve(r.getHost()).getHostAddress(), r.getPort())
                 : buildSocket(resolve(r.getHost()).getHostAddress(), r.getPort());
+        if (allowDowngrade && (s.getPort() != r.getPort())) {
+            r.setPort(s.getPort());
+        }
+        String headers = buildHeaders(method, r);
         String request = (method.equals("POST") || method.equals("PUT")) ?
                 new StringBuilder(headers).append(body).toString() : headers;
         if (s.isConnected()) {
@@ -68,7 +77,7 @@ public class HttpClient {
                 Instant end = Instant.now();
                 long time = end.toEpochMilli() - start.toEpochMilli();
                 r.setRawRequest(request);
-                return Optional.of(new Response(b, time, r));
+                return Optional.of(new Response(b, time, downgraded, r));
             } finally {
                 s.close();
             }
@@ -89,6 +98,7 @@ public class HttpClient {
     }
 
     private Socket buildSSLSocket(String host, int port) throws IOException, KeyManagementException, NoSuchAlgorithmException {
+        System.setProperty("com.sun.net.ssl.rsaPreMasterSecretFix", "true");
         SSLSocketFactory factory;
         if(!allowInvalidSsl) {
             factory = (SSLSocketFactory)SSLSocketFactory.getDefault();
@@ -104,11 +114,23 @@ public class HttpClient {
             sc.init(null, trustAllCerts, new java.security.SecureRandom());
             factory = sc.getSocketFactory();
         }
-        Socket s =  factory.createSocket(host, port);
-        ((SSLSocket)s).setEnabledProtocols(new String[] { "SSLv3", "TLSv1", "TLSv1.1", "TLSv1.2" });
+
+        SSLSocket s =  (SSLSocket) factory.createSocket(host, port);
+        s.setEnabledProtocols(new String[] { "SSLv3", "TLSv1", "TLSv1.1", "TLSv1.2" });
         s.setKeepAlive(false);
         s.setSoTimeout(DEFAULT_TIMEOUT);
-        ((SSLSocket)s).startHandshake();
+        if (allowDowngrade) {
+            try {
+                s.startHandshake();
+                return s;
+            } catch (Exception e) {
+                System.err.println(e.getMessage());
+                System.out.println("Downgrade to Non-SSL socket");
+                downgraded = true;
+                return buildSocket(host, (port == 443) ? 80 : port);
+            }
+        }
+        s.startHandshake();
         return s;
     }
 

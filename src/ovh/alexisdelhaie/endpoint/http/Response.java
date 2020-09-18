@@ -20,8 +20,9 @@ public class Response {
     private String status;
     private final long time;
     private final Request request;
+    private final boolean downgraded;
 
-    Response(byte[] res, long time, Request r) throws UnsupportedEncodingException {
+    Response(byte[] res, long time, boolean downgraded, Request r) throws UnsupportedEncodingException {
         headers = new HashMap<>();
         rawResponse = new String(res, StandardCharsets.UTF_8);
         int crlf = rawResponse.indexOf(DOUBLE_CRLF);
@@ -31,6 +32,7 @@ public class Response {
         body = rawResponse.substring(crlf + DOUBLE_CRLF.length());
         this.time = time;
         request = r;
+        this.downgraded = downgraded;
     }
 
     private void parseHeaders() {
@@ -105,6 +107,10 @@ public class Response {
     }
 
     public Request getRequest() { return request; }
+
+    public boolean isDowngraded() {
+        return downgraded;
+    }
 
     @Override
     public boolean equals(Object o) {

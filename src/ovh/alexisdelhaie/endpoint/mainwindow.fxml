@@ -3,7 +3,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ovh.alexisdelhaie.endpoint.Controller">
+<AnchorPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ovh.alexisdelhaie.endpoint.controllers.Controller">
    <TextField fx:id="requestInput" layoutX="109.0" layoutY="39.0" onKeyTyped="#requestInputOnKeyPressed" prefHeight="25.0" prefWidth="861.0" AnchorPane.leftAnchor="109.0" AnchorPane.rightAnchor="96.99999999999989" AnchorPane.topAnchor="39.0" />
    <Button layoutX="979.0" layoutY="39.0" mnemonicParsing="false" onMouseClicked="#start" prefHeight="25.0" prefWidth="73.0" text="Send" AnchorPane.rightAnchor="16.0" AnchorPane.topAnchor="39.0" />
    <ChoiceBox id="httpMethod" fx:id="httpMethod" layoutX="14.0" layoutY="39.0" prefHeight="25.0" prefWidth="85.0" AnchorPane.leftAnchor="14.0" AnchorPane.topAnchor="39.0" />
@@ -11,7 +11,7 @@
    <TabPane fx:id="tabs" layoutX="-1.0" layoutY="104.0" prefHeight="540.0" prefWidth="1067.0" tabClosingPolicy="ALL_TABS" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="104.0">
    </TabPane>
    <Button layoutX="1022.0" layoutY="71.0" mnemonicParsing="false" onMouseClicked="#createNewTab" prefHeight="25.0" prefWidth="31.0" text="+" AnchorPane.rightAnchor="16.0" AnchorPane.topAnchor="71.0" />
-   <Button layoutX="1000.0" layoutY="71.0" mnemonicParsing="false" onMouseClicked="#showAboutDialog" prefHeight="25.0" prefWidth="31.0" text="?" AnchorPane.rightAnchor="58.0" AnchorPane.topAnchor="71.0" />
+   <Button layoutX="1020.0" layoutY="8.0" mnemonicParsing="false" onMouseClicked="#showConfigurationDialog" prefHeight="25.0" prefWidth="73.0" text="Settings" AnchorPane.rightAnchor="16.0" AnchorPane.topAnchor="8.0" />
    <Pane fx:id="runningIndicatorPane" layoutX="109.0" layoutY="74.0" prefHeight="17.0" prefWidth="200.0" visible="false">
       <children>
          <ProgressIndicator layoutX="2.0" layoutY="1.0" prefHeight="17.0" prefWidth="18.0" />

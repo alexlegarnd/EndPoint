@@ -1,6 +1,6 @@
 package ovh.alexisdelhaie.endpoint.http;
 
-import ovh.alexisdelhaie.endpoint.URLGenerator;
+import ovh.alexisdelhaie.endpoint.url.URLGenerator;
 
 import java.util.HashMap;
 import java.util.Objects;
@@ -10,7 +10,7 @@ public class Request {
     private final String host;
     private final String scheme;
     private final String path;
-    private final int port;
+    private int port;
     private final HashMap<String, String> params;
     private final HashMap<String, String> customHeaders;
     private final String body;
@@ -66,6 +66,8 @@ public class Request {
     void setRawRequest(String r) {
         rawRequest = r;
     }
+
+    void setPort(int p) { this.port = p; }
 
     @Override
     public boolean equals(Object o) {

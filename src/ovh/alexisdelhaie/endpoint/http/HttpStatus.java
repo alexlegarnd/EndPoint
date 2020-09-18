@@ -68,13 +68,12 @@ public enum HttpStatus {
 
     private final int code;
     private final String message;
+    private static final Map<Integer, HttpStatus> map;
 
     HttpStatus(int code, String message) {
         this.code = code;
         this.message = message;
     }
-
-    private static final Map<Integer, HttpStatus> map;
 
     static {
         map = new HashMap<>();

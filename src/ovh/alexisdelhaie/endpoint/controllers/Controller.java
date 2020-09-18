@@ -1,4 +1,4 @@
-package ovh.alexisdelhaie.endpoint;
+package ovh.alexisdelhaie.endpoint.controllers;
 
 import javafx.application.Platform;
 import javafx.beans.property.StringProperty;
@@ -13,18 +13,23 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import org.apache.commons.validator.routines.UrlValidator;
+import ovh.alexisdelhaie.endpoint.configuration.ConfigurationProperties;
 import ovh.alexisdelhaie.endpoint.http.HttpClient;
 import ovh.alexisdelhaie.endpoint.http.Request;
 import ovh.alexisdelhaie.endpoint.http.RequestBuilder;
 import ovh.alexisdelhaie.endpoint.http.Response;
 import ovh.alexisdelhaie.endpoint.impl.EditCell;
 import ovh.alexisdelhaie.endpoint.model.Param;
+import ovh.alexisdelhaie.endpoint.url.URLGenerator;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -80,8 +85,11 @@ public class Controller implements Initializable {
     private Stage primaryStage;
     private HashMap<Integer, String> requests;
 
+    private ConfigurationProperties properties;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        properties = new ConfigurationProperties();
         requests = new HashMap<>();
         String[] method = { "GET", "POST", "HEAD", "PUT", "DELETE" };
         httpMethod.setItems(FXCollections.observableArrayList(method));
@@ -184,6 +192,13 @@ public class Controller implements Initializable {
 
     @FXML
     private void start() {
+        if (requestInput.getText().isBlank()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("URL field empty");
+            alert.setContentText("Enter your URL in the field at the top of the window.");
+            alert.showAndWait();
+            return;
+        }
         runningIndicatorPane.setVisible(true);
         new Thread(() -> {
             final String method = httpMethod.getValue();
@@ -194,7 +209,10 @@ public class Controller implements Initializable {
                     Request r = new RequestBuilder(requestInput.getText())
                             .setCustomHeaders(getCustomHeaders())
                             .build();
-                    HttpClient hc = new HttpClient();
+                    HttpClient hc = new HttpClient(
+                            properties.getBooleanProperty("allowInvalidSsl", false),
+                            properties.getBooleanProperty("allowDowngrade", true)
+                    );
                     switch (method) {
                         case "GET" -> response = hc.get(r);
                         case "POST" -> response = hc.post(r, getBody());
@@ -213,7 +231,6 @@ public class Controller implements Initializable {
                     }
                 } catch (IOException | NoSuchAlgorithmException | KeyManagementException e) {
                     System.err.println(e.getMessage());
-                    e.printStackTrace();
                     textArea.ifPresent(area -> Platform.runLater(() -> {
                         resetResponseTab();
                         area.setStyle("-fx-text-fill: red");
@@ -255,6 +272,8 @@ public class Controller implements Initializable {
             raw.setText(res.getRawResponse());
             TextArea request = (TextArea) responseTab.get().getContent().lookup("#request");
             request.setText(res.getRequest().getRawRequest());
+            GridPane downgradedIndicator = (GridPane) responseTab.get().getContent().lookup("#downgraded_indicator");
+            downgradedIndicator.setVisible(res.isDowngraded());
             TableView<Param> headers = (TableView<Param>) responseTab.get().getContent().lookup("#headers");
             headers.getItems().clear();
             for (Map.Entry<String, String> entry : res.getHeaders().entrySet()) {
@@ -279,6 +298,10 @@ public class Controller implements Initializable {
             time.setText("... ms");
             TextArea raw = (TextArea) responseTab.get().getContent().lookup("#raw");
             raw.setText("");
+            TextArea request = (TextArea) responseTab.get().getContent().lookup("#request");
+            request.setText("");
+            GridPane downgradedIndicator = (GridPane) responseTab.get().getContent().lookup("#downgraded_indicator");
+            downgradedIndicator.setVisible(false);
             TableView<Param> headers = (TableView<Param>) responseTab.get().getContent().lookup("#headers");
             headers.getItems().clear();
         }
@@ -384,25 +407,29 @@ public class Controller implements Initializable {
     }
 
     @FXML
-    private void showAboutDialog() {
+    private void showConfigurationDialog() {
         try {
             Stage dialog = new Stage();
-            Parent xml = FXMLLoader.load(getClass().getResource("about.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("configuration.fxml"));
+            Parent xml = loader.load();
+            ConfigurationController controller = loader.getController();
+            controller.setStageAndSetupListeners(primaryStage);
+            controller.setConfigurationProperties(properties);
             dialog.initOwner(primaryStage);
-            dialog.setScene(new Scene(xml, 677, 365));
-            dialog.setMaxHeight(365);
-            dialog.setMinHeight(365);
-            dialog.setMaxWidth(707);
-            dialog.setMinWidth(707);
+            dialog.setScene(new Scene(xml, 412, 556));
+            dialog.setMaxHeight(556);
+            dialog.setMinHeight(556);
+            dialog.setMaxWidth(412);
+            dialog.setMinWidth(412);
             dialog.setResizable(false);
-            dialog.setTitle("About EndPoint");
+            dialog.setTitle("Settings");
             dialog.getIcons().add( new Image(
                     Controller.class.getResourceAsStream( "icon.png" )));
             dialog.initModality(Modality.APPLICATION_MODAL);
             dialog.showAndWait();
         } catch (IOException e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Cannot initialize About");
+            alert.setTitle("Cannot initialize Settings");
             alert.setHeaderText("There was an error while initializing this dialog");
             alert.setContentText(e.getMessage());
             alert.showAndWait();
@@ -412,7 +439,22 @@ public class Controller implements Initializable {
     @FXML
     private void requestInputOnKeyPressed() {
         Tab tab = tabs.getSelectionModel().getSelectedItem();
-        requests.put(tab.hashCode(), requestInput.getText());
+        String url = requestInput.getText();
+        requests.put(tab.hashCode(), url);
+        if (url.isBlank()) {
+            tab.setText("Untitled");
+        } else {
+            url = URLGenerator.addSchemaToUrl(url);
+            UrlValidator urlValidator = new UrlValidator();
+            if (urlValidator.isValid(url)) {
+                try {
+                    URL u = new URL(url);
+                    tab.setText(u.getHost());
+                } catch (MalformedURLException e) {
+                    System.err.println(e.getMessage());
+                }
+            }
+        }
     }
 
 }
