@@ -1,5 +1,7 @@
 package ovh.alexisdelhaie.endpoint.http;
 
+import ovh.alexisdelhaie.endpoint.configuration.ConfigurationProperties;
+
 import javax.net.ssl.*;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -18,15 +20,19 @@ public class HttpClient {
 
     public final static String CRLF = "\r\n";
     public final static int DEFAULT_TIMEOUT = 10000;
+    public final static boolean DEFAULT_ALLOW_INVALID_SSL = false;
+    public final static boolean DEFAULT_ALLOW_DOWNGRADE = true;
+    public final static String DEFAULT_HTTP_VERSION = "HTTP/1.1";
 
     private final boolean allowInvalidSsl;
     private final boolean allowDowngrade;
+    private final String httpVersion;
     private boolean downgraded;
 
-    public HttpClient() { this(false, true); }
-    public HttpClient(boolean allowInvalidSsl, boolean allowDowngrade) {
-        this.allowInvalidSsl = allowInvalidSsl;
-        this.allowDowngrade = allowDowngrade;
+    public HttpClient(ConfigurationProperties props) {
+        this.allowInvalidSsl = props.getBooleanProperty("allowInvalidSsl", DEFAULT_ALLOW_INVALID_SSL);
+        this.allowDowngrade = props.getBooleanProperty("allowDowngrade", DEFAULT_ALLOW_DOWNGRADE);
+        this.httpVersion = props.getStringProperty("httpVersion", DEFAULT_HTTP_VERSION);
         this.downgraded = false;
     }
 
@@ -139,8 +145,9 @@ public class HttpClient {
         String path = (r.getParams().isEmpty()) ?
                 r.getPath() : r.getPathWithParams();
         final StringBuilder sb = new StringBuilder(method).append(" ").append(path)
-                .append(" HTTP/1.1").append(CRLF);
+                .append(" ").append(httpVersion).append(CRLF);
         sb.append("host: ").append(r.getHost()).append(":").append(r.getPort()).append(CRLF);
+
         sb.append("connection: close").append(CRLF);
         if (!custom.containsKey("accept")) {
             sb.append("accept: */*").append(CRLF);

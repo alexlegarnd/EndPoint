@@ -1,7 +1,10 @@
 package ovh.alexisdelhaie.endpoint.http;
 
+import ovh.alexisdelhaie.endpoint.http.parsers.Chunked;
+
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
 import java.util.regex.Matcher;
@@ -15,7 +18,7 @@ public class Response {
     private final HashMap<String, String> headers;
     private final String rawHeaders;
     private String rawResponse;
-    private final String body;
+    private String body;
     private int statusCode;
     private String status;
     private final long time;
@@ -33,6 +36,7 @@ public class Response {
         this.time = time;
         request = r;
         this.downgraded = downgraded;
+        parseBody();
     }
 
     private void parseHeaders() {
@@ -53,7 +57,7 @@ public class Response {
             statusCode = Integer.parseInt(m.group(2));
             status = m.group(3);
         } else {
-            p = Pattern.compile("^(HTTP/1.1)\\s([0-9]{3})$");
+            p = Pattern.compile("^(HTTP/1.1)\\s([0-9]{3})?(.*)$");
             m = p.matcher(l);
             if (m.matches()) {
                 statusCode = Integer.parseInt(m.group(2));
@@ -62,6 +66,19 @@ public class Response {
             } else {
                 statusCode = -1;
                 status = "Cannot get status form HTTP Response";
+            }
+        }
+    }
+
+    private void parseBody() {
+        if (headers.containsKey("transfer-encoding")) {
+            if (headers.get("transfer-encoding").toLowerCase().contains("chunked")) {
+                ArrayList<String> chunks = Chunked.parse(body);
+                final StringBuilder sb = new StringBuilder();
+                for (String chunk : chunks) {
+                    sb.append(chunk);
+                }
+                body = sb.toString();
             }
         }
     }

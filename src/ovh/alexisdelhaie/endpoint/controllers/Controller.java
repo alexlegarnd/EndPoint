@@ -84,6 +84,7 @@ public class Controller implements Initializable {
 
     private Stage primaryStage;
     private HashMap<Integer, String> requests;
+    private HashMap<Integer, String> methods;
 
     private ConfigurationProperties properties;
 
@@ -91,11 +92,16 @@ public class Controller implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         properties = new ConfigurationProperties();
         requests = new HashMap<>();
+        methods = new HashMap<>();
         String[] method = { "GET", "POST", "HEAD", "PUT", "DELETE" };
         httpMethod.setItems(FXCollections.observableArrayList(method));
         httpMethod.setValue(method[0]);
+        httpMethod.setOnAction(actionEvent -> httpMethodChanged());
         tabs.getSelectionModel().selectedItemProperty().addListener(
-                (ov, t, t1) -> requestInput.setText((t1 != null) ? requests.get(t1.hashCode()) : "")
+                (ov, t, t1) -> {
+                    requestInput.setText((t1 != null) ? requests.get(t1.hashCode()) : "");
+                    httpMethod.setValue((t1 != null) ? methods.get(t1.hashCode()) : httpMethod.getValue());
+                }
         );
         createNewTab();
     }
@@ -111,6 +117,7 @@ public class Controller implements Initializable {
 
         TabPane options = new TabPane();
         TextArea ta = new TextArea();
+        ta.setEditable(false);
 
         options.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
         options.getTabs().addAll(params, auth, headers, body, response);
@@ -121,6 +128,7 @@ public class Controller implements Initializable {
         Tab tab = new Tab("untitled", sp);
         tab.setOnCloseRequest(arg0 -> {
             requests.remove(tab.hashCode());
+            methods.remove(tab.hashCode());
         });
 
         return tab;
@@ -209,10 +217,7 @@ public class Controller implements Initializable {
                     Request r = new RequestBuilder(requestInput.getText())
                             .setCustomHeaders(getCustomHeaders())
                             .build();
-                    HttpClient hc = new HttpClient(
-                            properties.getBooleanProperty("allowInvalidSsl", false),
-                            properties.getBooleanProperty("allowDowngrade", true)
-                    );
+                    HttpClient hc = new HttpClient(properties);
                     switch (method) {
                         case "GET" -> response = hc.get(r);
                         case "POST" -> response = hc.post(r, getBody());
@@ -395,6 +400,7 @@ public class Controller implements Initializable {
         new Thread(() -> {
             Tab t = newTab();
             requests.put(t.hashCode(), "");
+            methods.put(t.hashCode(), httpMethod.getValue());
             Platform.runLater(() -> {
                 tabs.getTabs().add(t);
                 tabs.getSelectionModel().select(t);
@@ -434,6 +440,11 @@ public class Controller implements Initializable {
             alert.setContentText(e.getMessage());
             alert.showAndWait();
         }
+    }
+
+    private void httpMethodChanged() {
+        Tab tab = tabs.getSelectionModel().getSelectedItem();
+        methods.put(tab.hashCode(), httpMethod.getValue());
     }
 
     @FXML
