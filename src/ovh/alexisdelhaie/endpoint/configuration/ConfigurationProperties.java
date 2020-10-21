@@ -2,7 +2,7 @@ package ovh.alexisdelhaie.endpoint.configuration;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import javafx.scene.control.Alert;
+import ovh.alexisdelhaie.endpoint.utils.MessageDialog;
 
 import java.io.File;
 import java.io.IOException;
@@ -56,11 +56,7 @@ public class ConfigurationProperties {
         try {
             mapper.writeValue(new File(filepath), properties);
         } catch (Exception e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Cannot save settings");
-            alert.setHeaderText("There was an error while saving settings file");
-            alert.setContentText(e.getMessage());
-            alert.showAndWait();
+            MessageDialog.error("Cannot save settings", "There was an error while saving settings file");
         }
     }
 
@@ -71,11 +67,7 @@ public class ConfigurationProperties {
                 properties = mapper.readValue(f, new TypeReference<Map<String, String>>() { });
             }
         } catch (IOException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Cannot initialize settings");
-            alert.setHeaderText("There was an error while initializing settings file");
-            alert.setContentText(e.getMessage());
-            alert.showAndWait();
+            MessageDialog.error("Cannot initialize settings", "There was an error while initializing settings file");
         }
     }
 
@@ -88,11 +80,7 @@ public class ConfigurationProperties {
                 Files.createDirectories(path);
             }
         } catch (IOException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Cannot create app folder");
-            alert.setHeaderText("There was an error while creating appdata folder");
-            alert.setContentText(e.getMessage());
-            alert.showAndWait();
+            MessageDialog.error("Cannot create app folder", "There was an error while creating appdata folder");
         }
     }
 

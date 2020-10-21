@@ -22,7 +22,7 @@ public class HttpClient {
     public final static int DEFAULT_TIMEOUT = 10000;
     public final static boolean DEFAULT_ALLOW_INVALID_SSL = false;
     public final static boolean DEFAULT_ALLOW_DOWNGRADE = true;
-    public final static String DEFAULT_HTTP_VERSION = "HTTP/1.1";
+    public final static String DEFAULT_HTTP_VERSION = "HTTP/1.0";
 
     private final boolean allowInvalidSsl;
     private final boolean allowDowngrade;
