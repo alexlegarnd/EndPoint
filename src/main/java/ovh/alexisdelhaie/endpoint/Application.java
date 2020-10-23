@@ -1,8 +1,10 @@
 package ovh.alexisdelhaie.endpoint;
 
 import com.formdev.flatlaf.FlatIntelliJLaf;
+import ovh.alexisdelhaie.endpoint.utils.Tools;
 
 import javax.swing.*;
+import java.awt.*;
 
 public class Application {
 
@@ -12,7 +14,7 @@ public class Application {
         dialog.pack();
         dialog.setTitle("EndPoint");
         dialog.setVisible(true);
-        dialog.centerFrame();
+        Tools.centerFrame(dialog);
     }
 
 }
