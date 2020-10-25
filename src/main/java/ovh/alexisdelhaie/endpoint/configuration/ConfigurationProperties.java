@@ -52,6 +52,13 @@ public class ConfigurationProperties {
         return defaultB;
     }
 
+    public int getIntegerProperty(String key, int defaultI) {
+        if (properties.containsKey(key)) {
+            return Integer.parseInt(properties.get(key));
+        }
+        return defaultI;
+    }
+
     private void save() {
         try {
             mapper.writeValue(new File(filepath), properties);

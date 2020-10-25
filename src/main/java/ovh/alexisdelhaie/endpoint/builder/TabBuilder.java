@@ -1,30 +1,24 @@
 package ovh.alexisdelhaie.endpoint.builder;
 
-import ovh.alexisdelhaie.endpoint.utils.InsertToTableDialog;
-import ovh.alexisdelhaie.endpoint.utils.KeyValuePair;
+import ovh.alexisdelhaie.endpoint.utils.Tools;
+import ovh.alexisdelhaie.endpoint.utils.adapter.CustomDeleteMouseAdapter;
+import ovh.alexisdelhaie.endpoint.utils.adapter.CustomNewMouseAdapter;
+import ovh.alexisdelhaie.endpoint.utils.adapter.DeleteParamMouseAdapter;
+import ovh.alexisdelhaie.endpoint.utils.adapter.NewParamMouseAdapter;
 
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 
 public class TabBuilder {
 
-    private static HashMap<String, Component> indexes = new HashMap<>();
+    private static final HashMap<String, Component> indexes = new HashMap<>();
 
-    public static void create(JTabbedPane tab, String label, HashMap<Integer, String> urls) {
-        Component c = tab.add("", buildMainPanel());
+    public static void create(JTabbedPane tab, String label, HashMap<Integer, String> urls, JTextField urlField) {
+        Component c = tab.add("", buildMainPanel(urlField));
         int index = tab.indexOfComponent(c);
         updateIndexes(index);
         tab.setTabComponentAt(index, buildTabPanel(tab, c, label, urls));
@@ -33,7 +27,13 @@ public class TabBuilder {
 
     private static void updateIndexes(int index) {
         indexes.put("main[" + index + "].responseTextArea", indexes.get("main[waiting].responseTextArea"));
+        indexes.put("main[" + index + "].body", indexes.get("main[waiting].body"));
+        indexes.put("main[" + index + "].params", indexes.get("main[waiting].params"));
+        indexes.put("main[" + index + "].headers", indexes.get("main[waiting].headers"));
         indexes.remove("main[waiting].responseTextArea");
+        indexes.remove("main[waiting].body");
+        indexes.remove("main[waiting].params");
+        indexes.remove("main[waiting].headers");
     }
 
     private static JPanel buildTabPanel(JTabbedPane tab, Component c, String label, HashMap<Integer, String> urls) {
@@ -68,7 +68,7 @@ public class TabBuilder {
         return b;
     }
 
-    private static JSplitPane buildMainPanel() {
+    private static JSplitPane buildMainPanel(JTextField urlField) {
         JTextArea t = new JTextArea();
         t.setBackground(Color.WHITE);
         t.setEditable(false);
@@ -76,73 +76,57 @@ public class TabBuilder {
         indexes.put("main[waiting].responseTextArea", t);
         return new JSplitPane(
             JSplitPane.VERTICAL_SPLIT,
-            buildParametersTabbedPane(),
+            buildParametersTabbedPane(urlField),
             sp
         );
     }
 
-    private static JTabbedPane buildParametersTabbedPane() {
+    private static JTabbedPane buildParametersTabbedPane(JTextField urlField) {
         JTabbedPane p = new JTabbedPane();
-        p.add("Params", buildParamsTab());
+        p.add("Params", buildParamsTab(true, urlField));
         p.add("Authorization", new JPanel());
-        p.add("Headers", buildParamsTab());
-        p.add("Body", new JTextArea());
+        p.add("Headers", buildParamsTab(false, null));
+        JTextArea body = new JTextArea();
+        indexes.put("main[waiting].body", body);
+        p.add("Body", body);
         return p;
-    }
-
-    private static JTable buildTable() {
-        JTable t = new JTable();
-        TableColumn keyCol = new TableColumn();
-        keyCol.setHeaderValue("Keys");
-        TableColumn valCol = new TableColumn();
-        valCol.setHeaderValue("Values");
-        t.addColumn(keyCol);
-        t.addColumn(valCol);
-        return t;
     }
 
     public static JTextArea getResponseArea(int index) {
         return (JTextArea) indexes.get("main[" + index + "].responseTextArea");
     }
 
-    private static JPanel buildParamsTab() {
+    public static JTextArea getBody(int index) {
+        return (JTextArea) indexes.get("main[" + index + "].body");
+    }
+
+    public static HashMap<String, String> getParams(int index) {
+        JTable t = (JTable) indexes.get("main[" + index + "].params");
+        return Tools.tableToHashMap(t);
+    }
+
+    public static HashMap<String, String> getHeaders(int index) {
+        JTable t = (JTable) indexes.get("main[" + index + "].headers");
+        return Tools.tableToHashMap(t);
+    }
+
+    private static JPanel buildParamsTab(boolean isParam, JTextField urlField) {
         String[] headers = {"Keys", "Values"};
-        Object[][] datas = {};
-        DefaultTableModel model = new DefaultTableModel(datas, headers);
+        DefaultTableModel model = new DefaultTableModel(new Object[][]{}, headers);
         JPanel p = new JPanel();
         JTable t = new JTable(model);
-        JButton addButton = new JButton("Add new parameter");
-        JButton delButton = new JButton("Delete parameter");
+        indexes.put((isParam) ? "main[waiting].params" : "main[waiting].headers", t);
+        JButton addButton = new JButton("New");
+        JButton delButton = new JButton("Remove");
         delButton.setEnabled(false);
-        t.getSelectionModel().addListSelectionListener(new ListSelectionListener(){
-            public void valueChanged(ListSelectionEvent event) {
-                delButton.setEnabled(t.getSelectedRows().length > 0);
-            }
-        });
-        addButton.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                super.mouseClicked(e);
-                Optional<KeyValuePair> result = InsertToTableDialog.showDialog("Enter value");
-                if (result.isPresent()) {
-                    DefaultTableModel m = (DefaultTableModel) t.getModel();
-                    m.addRow(new Object[]{result.get().getKey(), result.get().getValue()});
-                }
-            }
-        });
-        delButton.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                super.mouseClicked(e);
-                int n = t.getSelectedRows().length;
-                if (n > 0) {
-                    DefaultTableModel m = (DefaultTableModel) t.getModel();
-                    for(int i = 0; i < n; i++) {
-                        m.removeRow(t.getSelectedRow());
-                    }
-                }
-            }
-        });
+        t.getSelectionModel().addListSelectionListener(event -> delButton.setEnabled(t.getSelectedRows().length > 0));
+        if (isParam) {
+            addButton.addMouseListener(new NewParamMouseAdapter(t, urlField));
+            delButton.addMouseListener(new DeleteParamMouseAdapter(t, urlField));
+        } else {
+            addButton.addMouseListener(new CustomNewMouseAdapter(t));
+            delButton.addMouseListener(new CustomDeleteMouseAdapter(t));
+        }
         p.add(addButton);
         p.add(delButton);
         p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
