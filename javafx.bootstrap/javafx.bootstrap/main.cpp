@@ -13,7 +13,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdParam
     si.cb = sizeof(si);
     ZeroMemory(&pi, sizeof(pi));
 
-    LPTSTR command = _tcsdup(TEXT(".\\runtime\\bin\\javaw.exe --module-path \".\\lib\" --add-modules javafx.controls,javafx.fxml -jar .\\app\\EndPoint.jar"));
+    LPTSTR command = _tcsdup(TEXT(".\\runtime\\bin\\javaw.exe -cp .\\app\\EndPoint.jar ovh.alexisdelhaie.endpoint.Application"));
     if (!CreateProcess(NULL, command, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
     {
         CloseHandle(&pi.hProcess);

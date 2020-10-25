@@ -22,17 +22,21 @@ public class HttpClient {
     public final static int DEFAULT_TIMEOUT = 10000;
     public final static boolean DEFAULT_ALLOW_INVALID_SSL = false;
     public final static boolean DEFAULT_ALLOW_DOWNGRADE = true;
-    public final static String DEFAULT_HTTP_VERSION = "HTTP/1.1";
+    public final static String DEFAULT_HTTP_VERSION = "HTTP/1.0";
 
     private final boolean allowInvalidSsl;
     private final boolean allowDowngrade;
     private final String httpVersion;
+    private final int timeout;
+
     private boolean downgraded;
 
     public HttpClient(ConfigurationProperties props) {
         this.allowInvalidSsl = props.getBooleanProperty("allowInvalidSsl", DEFAULT_ALLOW_INVALID_SSL);
         this.allowDowngrade = props.getBooleanProperty("allowDowngrade", DEFAULT_ALLOW_DOWNGRADE);
         this.httpVersion = props.getStringProperty("httpVersion", DEFAULT_HTTP_VERSION);
+        this.timeout = props.getIntegerProperty("timeout", DEFAULT_TIMEOUT);
+
         this.downgraded = false;
     }
 
@@ -99,7 +103,7 @@ public class HttpClient {
     private Socket buildSocket(String host, int port) throws IOException {
         Socket s = new Socket(host, port);
         s.setKeepAlive(false);
-        s.setSoTimeout(DEFAULT_TIMEOUT);
+        s.setSoTimeout(timeout);
         return s;
     }
 
@@ -124,7 +128,7 @@ public class HttpClient {
         SSLSocket s =  (SSLSocket) factory.createSocket(host, port);
         s.setEnabledProtocols(new String[] { "SSLv3", "TLSv1", "TLSv1.1", "TLSv1.2" });
         s.setKeepAlive(false);
-        s.setSoTimeout(DEFAULT_TIMEOUT);
+        s.setSoTimeout(timeout);
         if (allowDowngrade) {
             try {
                 s.startHandshake();
