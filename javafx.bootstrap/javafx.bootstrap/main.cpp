@@ -6,6 +6,7 @@
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdParam, int iCmdShow)
 {
+    int return_code = 0;
     STARTUPINFO si;
     PROCESS_INFORMATION pi;
 
@@ -16,17 +17,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdParam
     LPTSTR command = _tcsdup(TEXT(".\\runtime\\bin\\javaw.exe -cp .\\app\\EndPoint.jar ovh.alexisdelhaie.endpoint.Application"));
     if (!CreateProcess(NULL, command, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
     {
-        CloseHandle(&pi.hProcess);
-        CloseHandle(&pi.hThread);
         int msgboxID = MessageBox(
             NULL,
             TEXT("Unable to start the JVM. Try reinstalling the program to fix this problem."),
             TEXT("EndPoint bootstrap"),
             MB_ICONHAND | MB_OK | MB_DEFBUTTON1
         );
-        return -1;
+        return_code = -1;
     }
     CloseHandle(&pi.hProcess);
     CloseHandle(&pi.hThread);
-    return 0;
+    return return_code;
 }

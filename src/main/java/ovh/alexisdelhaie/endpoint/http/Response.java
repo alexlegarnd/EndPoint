@@ -51,13 +51,13 @@ public class Response {
     }
 
     private void parseStatus(String l) {
-        Pattern p = Pattern.compile("^(HTTP/1.1)\\s([0-9]{3})\\s(.+)$");
+        Pattern p = Pattern.compile("^(HTTP/[0-2].[0-1])\\s([0-9]{3})\\s(.+)$");
         Matcher m = p.matcher(l);
         if (m.matches()) {
             statusCode = Integer.parseInt(m.group(2));
             status = m.group(3);
         } else {
-            p = Pattern.compile("^(HTTP/1.1)\\s([0-9]{3})?(.*)$");
+            p = Pattern.compile("^(HTTP/[0-2].[0-1])\\s([0-9]{3})?(.*)$");
             m = p.matcher(l);
             if (m.matches()) {
                 statusCode = Integer.parseInt(m.group(2));
