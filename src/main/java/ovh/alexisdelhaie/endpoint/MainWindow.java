@@ -14,6 +14,7 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -25,6 +26,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MainWindow extends JFrame {
 
@@ -64,8 +67,8 @@ public class MainWindow extends JFrame {
     private final ConfigurationProperties props;
     private final ConcurrentHashMap<Integer, RequestTab> tabs;
 
-    public MainWindow() throws IOException {
-        props = new ConfigurationProperties();
+    public MainWindow(ConfigurationProperties props) throws IOException {
+        this.props = props;
         tabs = new ConcurrentHashMap<>();
         setIconImage(ImageIO.read(MainWindow.class.getResource("/icon.png")));
         setContentPane(contentPane);
@@ -77,7 +80,7 @@ public class MainWindow extends JFrame {
             @Override
             public void mouseClicked(MouseEvent e) {
                 super.mouseClicked(e);
-                ConfigurationDialog.showDialog(props);
+                ConfigurationDialog.showDialog(props, MainWindow.this);
             }
         });
         newTabButton.addMouseListener(new MouseAdapter() {
@@ -141,6 +144,7 @@ public class MainWindow extends JFrame {
                                 URL u = new URL((!urlField.getText().toLowerCase().startsWith("http://") &&
                                         !urlField.getText().toLowerCase().startsWith("https://")) ?
                                         "http://" + urlField.getText() : urlField.getText());
+                                parseParamsFromUrl(urlField.getText());
                                 if (u.getPath().isBlank()) {
                                     title.setText(u.getHost());
                                 } else {
@@ -280,6 +284,27 @@ public class MainWindow extends JFrame {
             return Optional.of((JSplitPane) c);
         }
         return Optional.empty();
+    }
+
+    private void parseParamsFromUrl(String url) {
+        Optional<JSplitPane> possibleTab = getSelectedTab();
+        if (possibleTab.isPresent()) {
+            int id = tabbedPane1.indexOfComponent(possibleTab.get());
+            JTable table = TabBuilder.getParamsTable(id);
+            DefaultTableModel m = (DefaultTableModel) table.getModel();
+            for (int i = m.getRowCount() - 1; i > -1; i--) {
+                m.removeRow(i);
+            }
+            Pattern pattern = Pattern.compile("[^&?]*?=[^&?]*", Pattern.CASE_INSENSITIVE);
+            Matcher matcher = pattern.matcher(url);
+            while (matcher.find()) {
+                String param = matcher.group();
+                String[] kv = param.split("=");
+                if (kv.length == 2) {
+                    m.addRow(new Object[]{kv[0], kv[1]});
+                }
+            }
+        }
     }
 
 }

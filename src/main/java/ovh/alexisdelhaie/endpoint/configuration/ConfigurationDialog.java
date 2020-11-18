@@ -1,9 +1,11 @@
 package ovh.alexisdelhaie.endpoint.configuration;
 
+import ovh.alexisdelhaie.endpoint.utils.MessageDialog;
 import ovh.alexisdelhaie.endpoint.utils.Tools;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Objects;
 
 public class ConfigurationDialog extends JDialog {
 
@@ -17,10 +19,11 @@ public class ConfigurationDialog extends JDialog {
     private JComboBox<String> httpVersion;
     private JSpinner timeout;
     private JButton aboutButton;
+    private JComboBox theme;
 
     private final ConfigurationProperties props;
 
-    private ConfigurationDialog(ConfigurationProperties props) {
+    private ConfigurationDialog(ConfigurationProperties props, JFrame frame) {
         setContentPane(contentPane);
         setModal(true);
         getRootPane().setDefaultButton(buttonOK);
@@ -32,6 +35,7 @@ public class ConfigurationDialog extends JDialog {
         allowDowngrade.setSelected(this.props.getBooleanProperty("allowDowngrade", true));
         httpVersion.setSelectedItem(this.props.getStringProperty("httpVersion", "HTTP/1.0"));
         timeout.setValue(this.props.getIntegerProperty("timeout", 10000));
+        theme.setSelectedItem(this.props.getStringProperty("theme", "IntelliJ"));
 
         allowInvalidSsl.addActionListener((e) -> {
             this.props.setProperty("allowInvalidSsl", String.valueOf(allowInvalidSsl.isSelected()));
@@ -45,15 +49,24 @@ public class ConfigurationDialog extends JDialog {
         timeout.addChangeListener((e) -> {
             this.props.setProperty("timeout", String.valueOf(timeout.getValue()));
         });
-
+        theme.addActionListener((e) -> {
+            String value = (String) theme.getSelectedItem();
+            this.props.setProperty("theme", value);
+            try {
+                UIManager.setLookAndFeel(Tools.getLookAndFeel(Objects.requireNonNull(value)));
+                SwingUtilities.updateComponentTreeUI(frame);
+            } catch(UnsupportedLookAndFeelException | InstantiationException | IllegalAccessException | ClassNotFoundException err) {
+                MessageDialog.error("Error while changing theme", err.getMessage());
+            }
+        });
     }
 
     private void onOK() {
         dispose();
     }
 
-    public static void showDialog(ConfigurationProperties props) {
-        ConfigurationDialog dialog = new ConfigurationDialog(props);
+    public static void showDialog(ConfigurationProperties props, JFrame frame) {
+        ConfigurationDialog dialog = new ConfigurationDialog(props, frame);
         dialog.setModal(true);
         dialog.setMinimumSize(new Dimension(WIDTH, HEIGHT));
         dialog.setMaximumSize(new Dimension(WIDTH, HEIGHT));

@@ -2,10 +2,7 @@ package ovh.alexisdelhaie.endpoint.builder;
 
 import ovh.alexisdelhaie.endpoint.utils.RequestTab;
 import ovh.alexisdelhaie.endpoint.utils.Tools;
-import ovh.alexisdelhaie.endpoint.utils.adapter.CustomDeleteMouseAdapter;
-import ovh.alexisdelhaie.endpoint.utils.adapter.CustomNewMouseAdapter;
-import ovh.alexisdelhaie.endpoint.utils.adapter.DeleteParamMouseAdapter;
-import ovh.alexisdelhaie.endpoint.utils.adapter.NewParamMouseAdapter;
+import ovh.alexisdelhaie.endpoint.utils.adapter.*;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -93,7 +90,6 @@ public class TabBuilder {
     private static JTabbedPane buildParametersTabbedPane(JTextField urlField) {
         JTabbedPane p = new JTabbedPane();
         p.add("Params", buildParamsTab(true, urlField));
-        p.add("Authorization", new JPanel());
         p.add("Headers", buildParamsTab(false, null));
         JTextArea body = new JTextArea();
         indexes.put("main[waiting].body", body);
@@ -138,6 +134,10 @@ public class TabBuilder {
         return Tools.tableToHashMap(t);
     }
 
+    public static JTable getParamsTable(int index) {
+        return (JTable) indexes.get("main[" + index + "].params");
+    }
+
     public static HashMap<String, String> getHeaders(int index) {
         JTable t = (JTable) indexes.get("main[" + index + "].headers");
         return Tools.tableToHashMap(t);
@@ -149,7 +149,8 @@ public class TabBuilder {
 
     private static JPanel buildParamsTab(boolean isParam, JTextField urlField) {
         String[] headers = {"Keys", "Values"};
-        DefaultTableModel model = new DefaultTableModel(new Object[][]{}, headers);
+        DefaultTableModel model = (isParam)? new ReadOnlyTableModel(new Object[][]{}, headers) :
+                new DefaultTableModel(new Object[][]{}, headers);
         JPanel p = new JPanel();
         JTable t = new JTable(model);
         indexes.put((isParam) ? "main[waiting].params" : "main[waiting].headers", t);
@@ -157,17 +158,19 @@ public class TabBuilder {
         JButton delButton = new JButton("Remove");
         delButton.setEnabled(false);
         t.getSelectionModel().addListSelectionListener(event -> delButton.setEnabled(t.getSelectedRows().length > 0));
+        p.add(addButton);
+        p.add(delButton);
         if (isParam) {
             addButton.addMouseListener(new NewParamMouseAdapter(t, urlField));
             delButton.addMouseListener(new DeleteParamMouseAdapter(t, urlField));
         } else {
             addButton.addMouseListener(new CustomNewMouseAdapter(t));
             delButton.addMouseListener(new CustomDeleteMouseAdapter(t));
+            JButton authButton = new JButton("Set authorization");
+            authButton.addMouseListener(new AuthorizationAdapter(t));
+            p.add(authButton);
         }
-        p.add(addButton);
-        p.add(delButton);
         p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-
         JPanel pp = new JPanel();
         pp.add(p);
         JScrollPane sp = new JScrollPane(t);

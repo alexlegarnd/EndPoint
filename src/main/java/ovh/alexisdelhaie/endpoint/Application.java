@@ -1,17 +1,18 @@
 package ovh.alexisdelhaie.endpoint;
 
-import com.formdev.flatlaf.FlatIntelliJLaf;
+import ovh.alexisdelhaie.endpoint.configuration.ConfigurationProperties;
 import ovh.alexisdelhaie.endpoint.utils.Tools;
 
 import javax.swing.*;
-import java.awt.*;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 
 public class Application {
 
-    public static void main(String[] args) throws UnsupportedLookAndFeelException, IOException {
-        UIManager.setLookAndFeel(new FlatIntelliJLaf());
-        MainWindow dialog = new MainWindow();
+    public static void main(String[] args) throws UnsupportedLookAndFeelException, IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        ConfigurationProperties props = new ConfigurationProperties();
+        UIManager.setLookAndFeel(Tools.getLookAndFeel(props.getStringProperty("theme", "IntelliJ")));
+        MainWindow dialog = new MainWindow(props);
         dialog.pack();
         dialog.setTitle("EndPoint");
         dialog.setVisible(true);

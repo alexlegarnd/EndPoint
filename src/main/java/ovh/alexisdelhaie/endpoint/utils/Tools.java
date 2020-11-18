@@ -1,8 +1,13 @@
 package ovh.alexisdelhaie.endpoint.utils;
 
+import com.formdev.flatlaf.FlatDarculaLaf;
+import com.formdev.flatlaf.FlatIntelliJLaf;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Base64;
 import java.util.HashMap;
 
 public class Tools {
@@ -30,6 +35,23 @@ public class Tools {
             result.put(key, value);
         }
         return result;
+    }
+
+    public static String toBase64(String decoded) {
+        byte[] encodedBytes = Base64.getEncoder().encode(decoded.getBytes());
+        return new String(encodedBytes);
+    }
+
+    public static String getLookAndFeel(String theme) {
+        switch (theme) {
+            case "IntelliJ" -> {
+                return FlatIntelliJLaf.class.getName();
+            }
+            case "Darcula" -> {
+                return FlatDarculaLaf.class.getName();
+            }
+        }
+        return UIManager.getSystemLookAndFeelClassName();
     }
 
 }
