@@ -126,7 +126,6 @@ public class HttpClient {
         }
 
         SSLSocket s =  (SSLSocket) factory.createSocket(host, port);
-        s.setEnabledProtocols(new String[] { "SSLv3", "TLSv1", "TLSv1.1", "TLSv1.2" });
         s.setKeepAlive(false);
         s.setSoTimeout(timeout);
         if (allowDowngrade) {

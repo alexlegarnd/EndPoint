@@ -1,23 +1,22 @@
 package ovh.alexisdelhaie.endpoint.http.parsers;
 
+import org.apache.commons.httpclient.ChunkedInputStream;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 public class Chunked {
 
-    public static ArrayList<String> parse(String body) {
-        ArrayList<String> result = new ArrayList<>();
+    public static String parse(String body) {
+        String result;
         try {
-            body = body.strip();
-            int length; int pos;
-            do {
-                pos = body.indexOf("\r\n");
-                length = Integer.parseInt(body.substring(0, pos), 16);
-                result.add(body.substring(pos + 2, length));
-                body = body.substring(pos + 2 + length);
-            } while (!body.isEmpty());
-        } catch (NumberFormatException e) {
-            result.add(body);
+            ChunkedInputStream inputStream = new ChunkedInputStream(new ByteArrayInputStream(body.getBytes()));
+            result = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            result = e.getLocalizedMessage();
         }
         return result;
     }

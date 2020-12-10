@@ -73,12 +73,7 @@ public class Response {
     private void parseBody() {
         if (headers.containsKey("transfer-encoding")) {
             if (headers.get("transfer-encoding").toLowerCase().contains("chunked")) {
-                ArrayList<String> chunks = Chunked.parse(body);
-                final StringBuilder sb = new StringBuilder();
-                for (String chunk : chunks) {
-                    sb.append(chunk);
-                }
-                body = sb.toString();
+                body = Chunked.parse(body);
             }
         }
     }
