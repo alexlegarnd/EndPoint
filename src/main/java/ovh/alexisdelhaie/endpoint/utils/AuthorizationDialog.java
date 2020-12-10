@@ -66,11 +66,14 @@ public class AuthorizationDialog extends JDialog {
     private void onOK() {
         String type = (String) typeBox.getSelectedItem();
         switch (Objects.requireNonNull(type)) {
-            case "Basic" -> finalValue = Tools.toBase64(
-                    String.format(
-                            "%s:%s",
-                            usernameBasicField.getText(),
-                            passwordBasicField.getText()
+            case "Basic" -> finalValue = String.format(
+                    "Basic %s",
+                    Tools.toBase64(
+                            String.format(
+                                    "%s:%s",
+                                    usernameBasicField.getText(),
+                                    passwordBasicField.getText()
+                            )
                     )
             );
             case "Bearer" -> finalValue = String.format("Bearer %s", bearerTokenField.getText());

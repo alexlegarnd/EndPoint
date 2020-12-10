@@ -13,7 +13,7 @@ public class AboutDialog extends JDialog {
     public static final int WIDTH = 740;
     public static final int HEIGHT = 500;
 
-    public static final String VERSION = "0.1.5";
+    public static final String VERSION = "0.1.5.1";
 
     private JPanel contentPane;
     private JLabel version;
