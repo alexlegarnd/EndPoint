@@ -29,14 +29,18 @@ public class Response {
         headers = new HashMap<>();
         rawResponse = new String(res, StandardCharsets.UTF_8);
         int crlf = rawResponse.indexOf(DOUBLE_CRLF);
-        rawHeaders = rawResponse.substring(0, crlf);
-        parseHeaders();
-        rawResponse = new String(res, getEncoding());
-        body = rawResponse.substring(crlf + DOUBLE_CRLF.length());
+        if (crlf > 0) {
+            rawHeaders = rawResponse.substring(0, crlf);
+            parseHeaders();
+            rawResponse = new String(res, getEncoding());
+            body = rawResponse.substring(crlf + DOUBLE_CRLF.length());
+            parseBody();
+        } else {
+            rawHeaders = rawResponse;
+        }
         this.time = time;
         request = r;
         this.downgraded = downgraded;
-        parseBody();
     }
 
     private void parseHeaders() {

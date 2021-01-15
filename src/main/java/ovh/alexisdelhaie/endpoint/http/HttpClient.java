@@ -1,6 +1,7 @@
 package ovh.alexisdelhaie.endpoint.http;
 
 import ovh.alexisdelhaie.endpoint.configuration.ConfigurationProperties;
+import ovh.alexisdelhaie.endpoint.utils.MessageDialog;
 
 import javax.net.ssl.*;
 import java.io.BufferedInputStream;
@@ -88,6 +89,8 @@ public class HttpClient {
                 long time = end.toEpochMilli() - start.toEpochMilli();
                 r.setRawRequest(request);
                 return Optional.of(new Response(b, time, downgraded, r));
+            } catch (Exception e) {
+                MessageDialog.error("HTTP Error", e.getMessage());
             } finally {
                 s.close();
             }
